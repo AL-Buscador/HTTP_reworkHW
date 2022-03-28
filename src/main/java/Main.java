@@ -17,34 +17,40 @@ public class Main {
             "https://raw.githubusercontent.com/netology-code/jd-homeworks/master/http/task1/cats";
     public static final ObjectMapper mapper = new ObjectMapper();
 
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) throws IOException {
+
         CloseableHttpClient httpClient = HttpClientBuilder.create()
                 .setDefaultRequestConfig(RequestConfig.custom()
-                .setConnectTimeout(5000)
-                .setSocketTimeout(30000)
-                .setRedirectsEnabled(false)
-                .build())
+                        .setConnectTimeout(5000)
+                        .setSocketTimeout(30000)
+                        .setRedirectsEnabled(false)
+                        .build())
                 .build();
 
-        HttpGet request =
-                new HttpGet(url);
-        CloseableHttpResponse response = httpClient.execute(request);
+        HttpGet request = new HttpGet(url);
 
-        Arrays.stream(response.getAllHeaders()).forEach(System.out::println);
+        try (CloseableHttpResponse response = httpClient.execute(request)) {
+
+            Arrays.stream(response.getAllHeaders()).forEach(System.out::println);
 
 //        String body = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
 //        System.out.println(body);
 
-        List<FactsAbautCats> facts = mapper.readValue(response.getEntity().getContent(),
-                new TypeReference<List<FactsAbautCats>>() {});
+            List<FactsAbautCats> facts = mapper.readValue(response.getEntity().getContent(),
+                    new TypeReference<List<FactsAbautCats>>() {
+                    });
 
-        facts.forEach(System.out::println);
+            httpClient.close();
+            response.close();
 
-        List<FactsAbautCats> upvotes = facts.stream()
-                        .filter(factsAbautCats -> factsAbautCats.getUpvotes() != null &&
-                                Integer.parseInt(factsAbautCats.getUpvotes()) > 0)
-                                .collect(Collectors.toList());
+            facts.forEach(System.out::println);
 
-        upvotes.forEach(System.out::println);
+            List<FactsAbautCats> upvotes = facts.stream()
+                    .filter(factsAbautCats -> factsAbautCats.getUpvotes() != null &&
+                            Integer.parseInt(factsAbautCats.getUpvotes()) > 0)
+                    .collect(Collectors.toList());
+
+            upvotes.forEach(System.out::println);
+        }
     }
 }
